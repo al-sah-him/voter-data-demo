@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd    
 import plotly.express as px
+from io import BytesIO
 
 
 #Title
@@ -57,6 +58,26 @@ if uploaded_file is not None:
         st.subheader(f"Tribe Percentage in {selected_ward}")
         fig_pie = px.pie(tribe_counts, names="TRIBE", values="Count", title="Tribe Proportions")
         st.plotly_chart(fig_pie)
+
+    # Select specific columns to export
+    columns_to_export = ["PRIMARY_NAME", "TRIBE", "PHONE_NB", "CONSTITUENCY", "CAW", "POLLING_STATION"]
+    filtered_export_df = filtered_df[columns_to_export]
+
+    # Export function
+    def to_excel(df):
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+            df.to_excel(writer, index=False, sheet_name="Filtered Data")
+        processed_data = output.getvalue()
+        return processed_data
+
+    # Download button
+    st.download_button(
+        label="📥 Dowload Data",
+        data=to_excel(filtered_export_df),
+        file_name=f"{selected_tribe}_{selected_ward}_data.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 else:
     st.write("Please upload a file")
